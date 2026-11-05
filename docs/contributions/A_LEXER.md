@@ -22,4 +22,12 @@ Show tokens for SEND "SOS"; then demonstrate lowercase command and unterminated 
 
 ## Handoff
 
-Review with the rotating reviewer and ensure the backup can run these commands. Fill in your name, actual review changes, test result, commit SHA, and PR URL after doing the work. This prepared implementation used AI assistance; do not claim the generated code was independently written before your review.
+Review with the rotating reviewer and ensure the backup can run these commands. This prepared implementation used AI assistance; do not claim the generated code was independently written before your review.
+
+- **Name:** Pranay Sarkar ([@Zakuroooo](https://github.com/Zakuroooo))
+- **Commit:** 457fde89ff8f2772c8ec149c06440c539edb22b5
+- **PR:** https://github.com/shiven16/MorseMail/pull/1 (merged into main)
+- **Test result:** `python3 -m unittest tests.test_lexer -v` passed 9 of 9 tests from a clean clone of main on 2026-11-06.
+- **Review changes:** None. The files were committed as prepared.
+- **Member 2 review:** Pending.
+- **Backup check (Member 5):** Pending.
