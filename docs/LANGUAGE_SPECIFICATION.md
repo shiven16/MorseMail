@@ -40,13 +40,13 @@ For `SEND`, ASCII lowercase letters are converted to uppercase. No trimming or U
 | `NEWLINE` | LF (`\n`), CRLF (`\r\n`), or CR (`\r`) | Logical statement separator. CRLF is one newline token. |
 | `EOF` | End of source | Exactly one token emitted after source exhaustion. |
 
-The lexer recognizes keywords only as complete words. A keyword must be followed by a permitted outside-string separator (horizontal whitespace, newline, or EOF); e.g. `SENDX` is one unknown keyword/identifier lexeme, not `SEND` followed by `X`.
+The lexer recognizes keywords only as complete words. A keyword may be followed by horizontal whitespace, newline, EOF, or a quote. A quote without preceding whitespace is tokenized so the parser can report the missing required gap; e.g. `SENDX` is one unknown keyword/identifier lexeme, not `SEND` followed by `X`.
 
 ### 3.2 Whitespace and string rules
 
 Outside strings, ASCII space and horizontal tab are insignificant and may appear before, between, or after a command and its string. They do not separate instructions. Newlines do separate instructions and are emitted as `NEWLINE`. Other control characters outside strings are invalid characters.
 
-Inside strings, the permitted source characters are printable ASCII U+0020 through U+007E except `"` (U+0022). Thus spaces and punctuation are preserved exactly; tabs, newlines, control characters, non-ASCII characters, and an embedded quote are not permitted. Since there is no escape mechanism, a quote always closes a string. An actual newline before the closing quote produces an unterminated-string error at the opening quote. A quote followed by further text starts normal tokenization after the string.
+Inside strings, permitted source characters are printable Unicode scalar values except `"` (U+0022). ASCII space is permitted; other whitespace and Unicode control/format characters are forbidden. Non-ASCII printable characters are retained by the lexer and rejected by semantic analysis when outside the supported repertoire. Spaces and punctuation are preserved exactly; tabs, newlines, control characters, and embedded quotes are not permitted. Since there is no escape mechanism, a quote always closes a string. An actual newline before the closing quote produces an unterminated-string error at the opening quote. A quote followed by further text starts normal tokenization after the string.
 
 The lexer does not interpret or validate Morse character groups inside a string. It only recognizes a `STRING`; Morse alphabet and separator validation belongs to semantic analysis.
 
@@ -157,7 +157,7 @@ The slash delimiter is notation only. The actual slash character is an encodable
 
 For DECODE input, the canonical notation is one ASCII space between adjacent character groups and exactly ` / ` between words. To simplify human input, runs of two or more spaces between nonempty groups are treated as a single character separator. A lone slash with optional spaces immediately around it is accepted as the word separator. Leading/trailing whitespace around the entire Morse string is ignored. Leading/trailing slash, adjacent slashes, slash with no group on either side, tabs, and empty groups are errors. A slash without surrounding spaces is still a separator (`.../---` is accepted). Thus slash can never be confused with the encoded slash character `-..-.`.
 
-Permitted Morse body characters are `.`, `-`, ASCII space, and `/`. A valid group is a nonempty sequence of dots and dashes exactly matching one entry in the reverse dictionary. Every separated nonempty group is a character; unsupported combinations are semantic errors. For example `.-.-.-` is one period; `.- -.-.-` is A followed by a period.
+Permitted Morse body characters are `.`, `-`, ASCII space, and `/`. A valid group is a nonempty sequence of dots and dashes exactly matching one entry in the reverse dictionary. Every separated nonempty group is a character; unsupported combinations are semantic errors. For example `.-.-.-` is one period; `.- .-.-.-` is A followed by a period.
 
 ## 7. Semantic specification
 
@@ -250,10 +250,10 @@ Locations refer to 1-based line and column. For content errors, the compiler rep
 | Unsupported source character | `SEND "CAFÉ"` | Semantic | `1:10: unsupported SEND character 'É'` | Semantic analyzer |
 | Invalid Morse symbol | `DECODE ".-x"` | Semantic | `1:11: invalid Morse symbol 'x'` | Semantic analyzer |
 | Invalid Morse group | `DECODE "..--"` | Semantic | `1:9: invalid Morse group '..--'` | Semantic analyzer |
-| Missing statement separator | `SEND "A" DECODE ".-"` | Syntax | `1:11: expected newline or end of input after statement` | Parser |
+| Missing statement separator | `SEND "A" DECODE ".-"` | Syntax | `1:10: expected newline or end of input after statement` | Parser |
 | Unexpected token | `SEND "A" "B"` | Syntax | `1:10: unexpected STRING after statement` | Parser |
 | Empty Morse group | `DECODE "...  ---"` | — | No error: repeated spaces collapse to one separator. A truly empty group cannot be represented by spaces under the separator rule. | — |
-| Incorrect word separator placement | `DECODE "/ ..."` | Semantic | `1:8: word separator must have a character group on both sides` | Semantic analyzer |
+| Incorrect word separator placement | `DECODE "/ ..."` | Semantic | `1:9: word separator must have a character group on both sides` | Semantic analyzer |
 | Invalid outside-string character | `SEND "A" #` | Lexical | `1:10: invalid character '#'` | Lexer |
 | Forbidden string character | A literal tab inside `SEND "A<TAB>B"` | Lexical | `1:8: tab is not permitted inside a string` | Lexer |
 
@@ -289,7 +289,7 @@ Expected text below is exact output; notation uses ASCII dot, hyphen, space, and
 | Source | Expected outputs, in source order |
 |---|---|
 | `SEND "A"` newline `DECODE "-..."` | `.-`; then `B` |
-| blank line, `SEND "SOS"`, blank line, `DECODE "..."`, final newline | `... --- ...`; then `E` |
+| blank line, `SEND "SOS"`, blank line, `DECODE "..."`, final newline | `... --- ...`; then `S` |
 | empty source | no outputs |
 
 ### 12.4 Lexical errors
@@ -302,6 +302,8 @@ Expected text below is exact output; notation uses ASCII dot, hyphen, space, and
 | literal tab inside `SEND "A<TAB>B"` | `1:8: tab is not permitted inside a string` |
 | `SEND "é"` | Lexically valid; semantic error `1:7: unsupported SEND character 'é'` |
 
+`DECODE 123` is a lexical failure at 1:8 because numeric tokens are not part of this language.
+
 ### 12.5 Syntax errors
 
 | Source | Expected error |
@@ -310,7 +312,7 @@ Expected text below is exact output; notation uses ASCII dot, hyphen, space, and
 | `SEND"A"` | `1:5: expected horizontal whitespace after SEND` |
 | `SEND "A" DECODE "-..."` | `1:10: expected newline or end of input after statement` |
 | `SEND "A" "B"` | `1:10: unexpected STRING after statement` |
-| `DECODE 123` | `1:8: expected STRING after DECODE` |
+
 
 ### 12.6 Semantic errors
 
@@ -320,8 +322,8 @@ Expected text below is exact output; notation uses ASCII dot, hyphen, space, and
 | `SEND " A"` | `1:7: SEND text cannot begin or end with a word boundary` |
 | `DECODE ".-x"` | `1:11: invalid Morse symbol 'x'` |
 | `DECODE "..--"` | `1:9: invalid Morse group '..--'` |
-| `DECODE "/ ..."` | `1:8: word separator must have a character group on both sides` |
-| `DECODE "... / / ---"` | `1:13: word separator must have a character group on both sides` |
+| `DECODE "/ ..."` | `1:9: word separator must have a character group on both sides` |
+| `DECODE "... / / ---"` | `1:15: word separator must have a character group on both sides` |
 | `DECODE "...\t---"` | Lexer error: tab is not permitted inside a string |
 | `DECODE ""` | `1:8: DECODE input must contain at least one Morse group` |
 
@@ -333,7 +335,7 @@ Expected text below is exact output; notation uses ASCII dot, hyphen, space, and
 | `SEND "0123456789"` | `----- .---- ..--- ...-- ....- ..... -.... --... ---.. ----.` |
 | `SEND " ."` | Error: leading word boundary (same rule as semantic table) |
 | `SEND "A   B"` | `.- / -...` |
-| `SEND "!&;=_$@"` | `-.-.-- .-... -.-.-. ..--.- ...-..- .--.-.` |
+| `SEND "!&;=_$@"` | `-.-.-- .-... -.-.-. -...- ..--.- ...-..- .--.-.` |
 
 ### 12.8 Morse decoding edge cases
 
@@ -351,3 +353,7 @@ Expected text below is exact output; notation uses ASCII dot, hyphen, space, and
 Version 0.1 contains only `SEND` and `DECODE`; double-quoted strings; newline-separated instructions; no variables, comments, escapes, expressions, or user-defined functions. Normal text is uppercased for encoding. Morse letters are separated by spaces and words by slash notation. The supported repertoire and mappings are exactly the tables in this specification; unsupported characters/groups are errors.
 
 A conforming initial compiler must implement the lexer, grammar, semantic rules, IR boundaries, and timing durations defined here. Device output may be unavailable, but when provided it must follow the stated unit timing. No unstated coercions, transliteration, punctuation substitutions, or recovery from invalid content are permitted.
+
+## 14. Implementation clarification
+
+The compiler completes lexing before parsing, and parsing before semantic analysis. It stops at the first error in the earliest failing phase and generates no partial outputs. Empty/all-space DECODE input points at the opening quote. Signal generation emits no leading or trailing gap. SEND IR normalizes ASCII letter case and collapses internal ASCII spaces. DECODE output is display-only by default. The browser runtime inserts a separate 700 ms pause between nonempty SEND statements. This pause is not a Morse word gap.
