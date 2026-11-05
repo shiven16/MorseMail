@@ -1,0 +1,5 @@
+SEND "SOS HELP"
+SEND "Hello World"
+DECODE "... --- ..."
+DECODE ".../---"
+SEND "A/B"
