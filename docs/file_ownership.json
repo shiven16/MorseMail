@@ -1,0 +1,94 @@
+{
+  "revision": 1,
+  "description": "Exact non-overlapping final source ownership; generated output/tmp/.git excluded.",
+  "members": {
+    "1": {
+      "role": "Lexer and shared records",
+      "files": [
+        "docs/contributions/A_LEXER.md",
+        "morsemail/__init__.py",
+        "morsemail/contracts.py",
+        "morsemail/lexer.py",
+        "tests/__init__.py",
+        "tests/test_lexer.py"
+      ]
+    },
+    "2": {
+      "role": "Parser, language and examples",
+      "files": [
+        "docs/LANGUAGE_SPECIFICATION.md",
+        "docs/ONE_DAY_PLAN.md",
+        "docs/PROJECT_GUIDE.md",
+        "docs/TEAM_EXECUTION_BLUEPRINT.md",
+        "docs/contributions/B_PARSER.md",
+        "examples/demo.ms",
+        "examples/lexical_error.ms",
+        "examples/semantic_error.ms",
+        "examples/syntax_error.ms",
+        "morsemail/parser.py",
+        "tests/test_parser.py"
+      ]
+    },
+    "3": {
+      "role": "Semantics and repertoire",
+      "files": [
+        "docs/ARCHITECTURE.md",
+        "docs/contributions/C_SEMANTICS.md",
+        "morsemail/morse.py",
+        "morsemail/semantic.py",
+        "tests/test_semantic.py"
+      ]
+    },
+    "4": {
+      "role": "Code generation, compiler and API",
+      "files": [
+        "docs/FILE_OWNERSHIP.md",
+        "docs/TEST_REPORT.md",
+        "docs/contributions/D_COMPILER.md",
+        "docs/file_ownership.json",
+        "morsemail/codegen.py",
+        "morsemail/compiler.py",
+        "morsemail/server.py",
+        "scripts/member_files.py",
+        "tests/test_codegen.py",
+        "tests/test_compiler.py",
+        "tests/test_server.py"
+      ]
+    },
+    "5": {
+      "role": "Frontend, playback, CLI and export",
+      "files": [
+        ".github/workflows/tests.yml",
+        ".gitignore",
+        "README.md",
+        "docs/AST_VISUALIZER.md",
+        "docs/FONTS.md",
+        "docs/STAGE_EXPLORERS.md",
+        "docs/contributions/E_PLAYER_CLI.md",
+        "morsemail/__main__.py",
+        "morsemail/cli.py",
+        "morsemail/player.py",
+        "morsemail/web/app.js",
+        "morsemail/web/ast.js",
+        "morsemail/web/export.js",
+        "morsemail/web/fonts/Manrope-OFL.txt",
+        "morsemail/web/fonts/PlexMono-OFL.txt",
+        "morsemail/web/fonts/manrope.ttf",
+        "morsemail/web/fonts/plex-mono.ttf",
+        "morsemail/web/index.html",
+        "morsemail/web/player.js",
+        "morsemail/web/stages.js",
+        "morsemail/web/studio.js",
+        "morsemail/web/styles.css",
+        "tests/dom_stub.js",
+        "tests/test_ast.js",
+        "tests/test_cli.py",
+        "tests/test_export.js",
+        "tests/test_playback.js",
+        "tests/test_player.py",
+        "tests/test_stages.js",
+        "tests/test_studio.js"
+      ]
+    }
+  }
+}
